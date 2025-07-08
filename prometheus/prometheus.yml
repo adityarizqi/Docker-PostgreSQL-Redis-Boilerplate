@@ -1,0 +1,33 @@
+# prometheus/prometheus.yml
+
+global:
+  scrape_interval: 15s 
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'database_monitoring'
+
+scrape_configs:
+  # Jobs for Prometheus scrape
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Job for scrape Node Exporter
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['node_exporter:9100']
+
+  # Job for scrape cAdvisor
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  # Job for Postgres Exporter scrape
+  - job_name: 'postgres_exporter'
+    static_configs:
+      - targets: ['postgres_exporter:9187']
+
+  # Job for Redis Exporter scrape
+  - job_name: 'redis_exporter'
+    static_configs:
+      - targets: ['redis_exporter:9121']

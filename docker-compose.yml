@@ -1,0 +1,132 @@
+services:
+  # --- DATABASE & CACHE ---
+  postgres_db:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres.conf:/etc/postgresql/postgresql.conf.d/custom.conf
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - monitoring-net
+    restart: unless-stopped
+
+  redis_cache:
+    image: redis:7-alpine
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - monitoring-net
+    restart: unless-stopped
+
+  # --- BACKUP SERVICE ---
+  sqlbak:
+    image: pranasnet/sqlbak
+    container_name: sqlbak
+    environment:
+      - sqlbak_key=${SQLBAK_TOKEN}
+    volumes:
+      - sqlbak_volume:/opt/sqlbak
+    networks:
+      - monitoring-net
+    restart: unless-stopped
+
+  # --- MONITORING STACK ---
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - monitoring-net
+    restart: unless-stopped
+
+  # --- APPLICATION EXPORTERS ---
+  postgres_exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: postgres_exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_db:5432/${POSTGRES_DB}?sslmode=disable"
+    ports:
+      - "9187:9187"
+    networks:
+      - monitoring-net
+    depends_on:
+      - postgres_db
+    restart: unless-stopped
+
+  redis_exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: redis_exporter
+    environment:
+      - REDIS_ADDR=redis://:${REDIS_PASSWORD}@redis_cache:6379
+    ports:
+      - "9121:9121"
+    networks:
+      - monitoring-net
+    depends_on:
+      - redis_cache
+    restart: unless-stopped
+
+  # --- INFRASTRUCTURE EXPORTERS ---
+  node_exporter:
+    image: prom/node-exporter:latest
+    container_name: node_exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+    pid: host
+    restart: unless-stopped
+    networks:
+      - monitoring-net
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    privileged: true
+    restart: unless-stopped
+    networks:
+      - monitoring-net
+
+# --- VOLUMES & NETWORKS ---
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  sqlbak_volume:
+    driver: local
+
+networks:
+  monitoring-net:
+    driver: bridge
