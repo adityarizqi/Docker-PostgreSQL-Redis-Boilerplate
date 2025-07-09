@@ -24,8 +24,12 @@ Follow these steps:
 docker exec -it postgres_db psql -U ${POSTGRES_USER}
 ```
 - Paste and run the SQL tuning statements listed above.
+- Reload the configuration for the changes to take effect (for parameters that do not require a restart):
+```SQL
+SELECT pg_reload_conf();
+```
 - Restart the PostgreSQL container to apply the changes:
 ```bash
-docker restart postgres_db
+docker compose restart postgres_db
 ```
 **Note:** Replace `${POSTGRES_USER}` with your actual container name and PostgreSQL username.
