@@ -10,7 +10,6 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./postgres.conf:/etc/postgresql/postgresql.conf.d/custom.conf
       - postgres_data:/var/lib/postgresql/data
     networks:
       - monitoring-net
