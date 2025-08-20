@@ -19,6 +19,7 @@ This repository provides a ready-to-use Docker Compose setup for common database
    ```
    If you don't have a SQLBak token yet, sign up for a free account at [https://sqlbak.com](https://sqlbak.com)
    to generate one.
+
 2. Launch the stack:
    ```bash
    docker compose up -d
