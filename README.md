@@ -1,6 +1,7 @@
 # Docker Database Services Boilerplate
 
 This repository provides a ready-to-use Docker Compose setup for common database and monitoring needs. It bundles persistent PostgreSQL and Redis services, automated backups via SQLBak, and a full Prometheus monitoring stack with cAdvisor and exporters. Use it as a starting point for local development or small deployments.
+![Grafana Cloud Image](https://dl.dropbox.com/scl/fi/k4v8qv7wiwwb7nycirvc5/WhatsApp-Image-2025-08-20-at-13.45.49.jpeg?rlkey=dm2ubucqi13u5p1j1u6gc09fh&st=yoyka2nc&dl=0)
 
 ## Services
 - **PostgreSQL** – Primary relational database with persistent volume and credentials supplied through environment variables.
